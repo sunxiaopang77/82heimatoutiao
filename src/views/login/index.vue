@@ -51,16 +51,20 @@ export default {
         mobile: [{
           required: true, // 意味着必填
           message: '手机号不能为空' // 如果没有满足要求,会提示message内容
+        //   trigger: 'blur'
         }, {
           pattern: /^1[3456789]\d{9}$/, // 正则表达式
           message: '手机号格式不正确'
+        //   trigger: 'blur'
         }],
         code: [{
           required: true,
           message: '验证码不能为空'
+        //   trigger: 'blur'
         }, {
           pattern: /^\d{6}$/, // 正则表达式
           message: '验证码必须为6位数字'
+        //   trigger: 'blur'
         }],
         // required只校验(空串)null,undefined,但不校验false,true
         check: [{
@@ -73,12 +77,26 @@ export default {
     login () {
       // 通过el-form组件validata方法,校验整个表单数据
       // 传入一个回调函数
-      this.$refs.loginForm.valuedate((isOk, obj) => {
-        // if (isOk) {
-        //   this.$message({ type: 'success', message: '成功' })
-        // } else {
-        //   this.$message({ type: 'warning', message: '失败' })
-        // }
+      this.$refs.loginForm.validate(isOk => {
+        if (isOk) {
+          // 请求
+          // 在axios中 data中放置body参数 params是放置地址参数的
+          this.$axios({
+            url: '/authorizations',
+            method: 'post',
+            data: this.loginForm
+          }).then(result => {
+            // 放到前端缓存中
+            window.localStorage.setItem('user-token', result.data.data.token)
+            // 编程式导航
+            this.$router.push('/') // 登陆成功跳转到home页
+          }).catch(() => {
+            this.$message({
+              message: '手机号或验证码错误',
+              type: 'warning'
+            })
+          })
+        }
       })
     }
   }
@@ -99,7 +117,7 @@ export default {
   align-items: center;
   .login-card {
     width: 440px;
-    height: 300px;
+    height: 350px;
     .logo {
       text-align: center;
       img {
